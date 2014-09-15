@@ -77,6 +77,8 @@ char getEvent() {
                     return 'a';
                 case SDLK_d:
                     return 'd';
+                case SDLK_ESCAPE:
+                    return '\x1B';
                 default:
                     return ' ';
             }

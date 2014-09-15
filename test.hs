@@ -2,7 +2,8 @@
 
 import Foreign.C
 import Hex
-
+import Graphics
+{-
 screen_height=750
 screen_width=1200
 
@@ -58,16 +59,22 @@ animateMotion ht old prog dir
         c_clearDrawing
         sequence $ map (\(h,t) -> drawHexagon ((\(x,y)->(floor $ x*75+((fromIntegral screen_width)/2.0),floor $ y*50+((fromIntegral screen_height)/2.0)))((\(x,y) -> ((fromIntegral x)-(prog*(fromIntegral(fst (getXY dir)))), (fromIntegral y)-(prog*(fromIntegral (snd (getXY dir))))) )(getXY (subHex h old)))) (typeToRGB t)) ht
         c_updateDrawing
-        animateMotion ht old (prog+0.001) dir
-
+        getLine
+        animateMotion ht old (prog+0.04) dir
+-}
+{-
 debug :: Hextille -> IO()
 debug rh = do
+    clearDrawing
     let old = (Hex(0,0,0))
-        dir = (Hex(1,0,-1))
-        prog = 0.70
-    sequence_ ( map (\(h,t) -> drawHexagon ((\(x,y)->(floor $ x*75+((fromIntegral screen_width)/2.0),floor $ y*50+((fromIntegral screen_height)/2.0)))((\(x,y) -> ((fromIntegral x)-(prog*(fromIntegral(fst (getXY dir)))), (fromIntegral y)-(prog*(fromIntegral (snd (getXY dir))))) )(getXY (subHex h old)))) (typeToRGB t)) rh )
-
-
+        dir = (Hex(-1,0,1))
+        prog = 0.22
+    sequence ( map (\(h,t) -> drawHexagon ((\(x,y)->(floor $ x*75+((fromIntegral screen_width)/2.0),floor $ y*50+((fromIntegral screen_height)/2.0)))((\(x,y) -> ((fromIntegral x)-(prog*(fromIntegral(fst (getXY dir)))), (fromIntegral y)-(prog*(fromIntegral (snd (getXY dir))))) )(getXY (subHex h old)))) (typeToRGB t)) rh )
+    updateDrawing
+    getLine
+    return ()
+-}
+{-
 showEverything :: Hextille -> Hex -> IO()
 showEverything hextille centerhex = do
     key <- getKey
@@ -75,11 +82,11 @@ showEverything hextille centerhex = do
     if (key/=' ')
         then animateMotion hextille centerhex 0.0 (charToHex key)
         else (return())
-    c_clearDrawing
+    clearDrawing
     sequence $ map (\(h,t) -> drawHexagon ((\(x,y)->(x*75+(screen_width`quot`2),y*50+(screen_height`quot`2)))(getXY (subHex h newCenterhex))) (typeToRGB t)) hextille
-    c_updateDrawing
+    updateDrawing
     showEverything hextille newCenterhex
-
+-}
 main = do
     initialize (screen_width,screen_height)
     let rh = randomHextille 0 3
@@ -88,5 +95,6 @@ main = do
     --debug rh
     --c_updateDrawing
     --getLine
-    showEverything rh (Hex(0,0,0))
-    c_close
+    --showEverything rh (Hex(0,0,0))
+    run rh (Hex(0,0,0))
+    close

@@ -16,6 +16,7 @@ module Graphics
 , charToHex
 , animateMotion
 , showEverything
+, run
 ) where
 
 import Foreign.C
@@ -65,7 +66,7 @@ typeToRGB (Type (Shadeless,Blue)) = (0,0,0xFF)
 typeToRGB (Type (Shadeless,Colorless)) = (0x80,0x80,0x80)
 
 getXY :: Hex -> (Int,Int)
-getXY (Hex(u,v,w)) = (-2*u,-(v-w))
+getXY (Hex(u,v,w)) = ((-2*u)*75,-(v-w)*50)
 
 charToHex :: Char -> Hex
 charToHex 'w' = (Hex(0,1,-1))
@@ -81,32 +82,34 @@ processChar '\ESC' _ _ = return()
 processChar ' ' hextille centerhex = showEverything hextille centerhex
 processChar c hextille centerhex = animateMotion hextille centerhex 0.0 (charToHex c)
 
+displayOffsetHex :: (Hex,Type) -> (Int,Int) -> IO()
+displayOffsetHex (h,t) (ox,oy) = do
+    drawHexagon (-ox+hx+(screen_width`quot`2),-oy+hy+(screen_height`quot`2)) (typeToRGB t) where
+        (hx,hy) = (getXY h)
+
+displayHextille :: Hextille -> (Int,Int) -> IO()
+displayHextille hextille (ox,oy) = do
+    clearDrawing
+    sequence $ map (\(h,t) -> displayOffsetHex (h,t) (ox, oy) ) hextille
+    updateDrawing
 
 animateMotion :: Hextille -> Hex -> Float -> Hex -> IO()
 animateMotion ht _ 1.0 _ = return ()
 animateMotion ht old prog dir 
-    | prog>=1.0  = return()
+    | prog>=1.0  = run ht (old `addHex` dir)
     | otherwise = do
-        c_clearDrawing
-        sequence $ map (\(h,t) -> drawHexagon ((\(x,y)->(floor $ x*75+((fromIntegral screen_width)/2.0),floor $ y*50+((fromIntegral screen_height)/2.0)))((\(x,y) -> ((fromIntegral x)-(prog*(fromIntegral(fst (getXY dir)))), (fromIntegral y)-(prog*(fromIntegral (snd (getXY dir))))) )(getXY (subHex h old)))) (typeToRGB t)) ht
-        c_updateDrawing
-        getLine
+        let new = old `addHex` dir
+            (oldx,oldy) = (getXY old)
+            (newx,newy) = (getXY new)
+            x=oldx+(round (prog*(fromIntegral (newx-oldx))))
+            y=oldy+(round (prog*(fromIntegral (newy-oldy))))
+        displayHextille ht (x,y)
         animateMotion ht old (prog+0.04) dir
 
 showEverything :: Hextille -> Hex -> IO()
 showEverything hextille centerhex = do
-    key <- getKey
-    let newCenterhex = centerhex `addHex` (charToHex key)
-    if (key/=' ' && key/='\ESC')
-        then animateMotion hextille centerhex 0.0 (charToHex key)
-        else (return())
-    if (key/='\ESC')
-        then do
-            c_clearDrawing
-            sequence $ map (\(h,t) -> drawHexagon ((\(x,y)->(x*75+(screen_width`quot`2),y*50+(screen_height`quot`2)))(getXY (subHex h newCenterhex))) (typeToRGB t)) hextille
-            c_updateDrawing
-            showEverything hextille newCenterhex
-        else (return())
+    displayHextille hextille (getXY centerhex)
+    run hextille centerhex
 
 run :: Hextille -> Hex -> IO()
 run hextille centerhex = do
