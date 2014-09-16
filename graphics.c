@@ -1,6 +1,6 @@
 #include "SDL2/SDL.h"
 #include "stdio.h"
-
+#include "SDL2/SDL_ttf.h"
 
 const int HEX_WIDTH  = 200;
 const int HEX_HEIGHT = 100;
@@ -25,6 +25,41 @@ void myclose() {
     SDL_Quit();
 }
 
+void writeText(char *str, int x, int y, int red, int green, int blue) {
+    TTF_Init();
+    TTF_Font *gfont = TTF_OpenFont( "/usr/share/fonts/corefonts/arial.ttf", 12 );
+    SDL_Color textColor = { red, green, blue };
+    SDL_Surface* textSurface = TTF_RenderText_Solid(gfont , str, textColor );
+    SDL_Texture* gTexture = SDL_CreateTextureFromSurface( gRenderer, textSurface );
+    int width=(textSurface->w);
+    printf("Width=%d\n",width);
+    int height=(textSurface->h);
+    SDL_Rect dest = {x-width,y-height,width,height};
+    SDL_RenderCopy( gRenderer, gTexture, NULL, &dest );
+    SDL_FreeSurface(textSurface);
+    TTF_CloseFont(gfont);
+
+}
+
+void drawDot(int centerx, int centery, int r, int red, int green, int blue) {
+    SDL_SetRenderDrawColor(gRenderer,red,green,blue,0xFF);
+    for (int i=-r;i<=r;i++) {
+        for (int j=-r;j<=r;j++) {
+            if(i*i+j*j<r*r) {
+                SDL_RenderDrawPoint(gRenderer,i+centerx,j+centery-50);
+            }
+        }
+    }
+    SDL_SetRenderDrawColor(gRenderer,0x80+red/2,0x80+green/2,0x80+blue/2,0x80);
+    for (int i=-r;i<=r;i++) {
+        for (int j=-r;j<=r;j+=2) {
+            if(i*i+j*j<r*r) {
+                SDL_RenderDrawPoint(gRenderer,i+centerx,((j+1)/2)+centery);
+            }
+        }
+    }
+}
+
 void drawHexagon(int centerx,int centery,int red,int green,int blue) {
     int top=centery-HEX_HEIGHT/2;
     int bottom=centery+HEX_HEIGHT/2-1;
@@ -32,6 +67,7 @@ void drawHexagon(int centerx,int centery,int red,int green,int blue) {
     int x2=centerx-HEX_WIDTH/4-1;
     int x3=centerx+HEX_WIDTH/4;
     int x4=centerx+HEX_WIDTH/2-1;
+    SDL_SetRenderDrawBlendMode(gRenderer,SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(gRenderer,red,green,blue,0xFF);
     for (int i=0;i<HEX_HEIGHT/2;i++) {
         SDL_RenderDrawLine(gRenderer,x2-i+1,top+i,x3+i-1,top+i);
@@ -64,24 +100,7 @@ char getEvent() {
     SDL_Event e;
     if(SDL_PollEvent( &e ) != 0) {
         if(e.type == SDL_KEYDOWN) {
-            switch( e.key.keysym.sym ) {
-                case SDLK_w:
-                    return 'w';
-                case SDLK_q:
-                    return 'q';
-                case SDLK_e:
-                    return 'e';
-                case SDLK_s:
-                    return 's';
-                case SDLK_a:
-                    return 'a';
-                case SDLK_d:
-                    return 'd';
-                case SDLK_ESCAPE:
-                    return '\x1B';
-                default:
-                    return ' ';
-            }
+            return ((char)e.key.keysym.sym);
         } else
             return ' ';
     } else
