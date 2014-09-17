@@ -3,51 +3,25 @@ import Graphics
 import Input
 import Time
 
+import Numeric
+
 data Status = Quitting | Moving Hex Hex Time | Idle
 data Action = DoQuit | DoIdle | DoMove Hex
 data Visual = DebugText | Dot | Ground Hextille
 type VisualStack = [Visual]
 
+hexToText :: Hex -> String
+hexToText hex = ("("++(showFFloat (Just 1) u $ ","++(showFFloat (Just 1) v $ ","++(showFFloat (Just 1) w ")")))) where (u,v,w) = (smallLoc hex)
+
 renderVisual :: Visual -> Hex -> Time -> Renderable
 renderVisual Dot _ _ = renderDot
-renderVisual DebugText centerHex _ = (renderText (show (smallLoc centerHex)) (screen_width,screen_height) (0,0,0))
+renderVisual DebugText centerHex _ = (renderText (hexToText centerHex) (screen_width,screen_height) (0,0,0))
 renderVisual (Ground hextille) centerHex _ = (renderHextille hextille centerHex)
 
 renderAll :: VisualStack -> Hex -> Time -> IO()
 renderAll vstack centerHex time = do
     let stack = map (\visual -> renderVisual visual centerHex time) vstack
     displayAll stack
-
-{-
-standStill :: Hextille -> Hex -> IO()
-standStill hextille hex = do
-    time <- getTicks
-    displayAll  ( (renderHextille hextille centerhex)
-                : (renderDot)
-                : (renderText (show (smallLoc centerhex)) (screen_width,screen_height) (0,0,0))
-                : []) time
-    run hextille centerhex
-
-quit :: IO()
-quit = return()
--}
---move :: Hextille -> Hex -> Hex -> Time -> IO()
---move hextille centerhex dir startTime = 
-
-{-
-processChar :: Char -> Hextille -> Hex -> IO()
-processChar '\ESC' _ _ = quit
-processChar ' ' hextille centerhex = do
-    standStill hextile centerhex
-processChar c hextille centerhex = do
-    time <- getTicks
-    let dir = charToHex c
-        new = (centerhex `addHex` dir)
-    --animateMotion hextille centerhex time time dir
-    displayAll  ( (renderSlidingHextille hextille centerhex new startTime)
-                : []) time
-    run hextille new
--}
 
 processChar :: Char -> Action
 processChar '\ESC' = DoQuit
@@ -58,11 +32,6 @@ actionToStatus :: Action -> Hex -> Time -> Status
 actionToStatus DoQuit _ _ = Quitting
 actionToStatus DoIdle _ _ = Idle
 actionToStatus (DoMove dir) oldHex now = Moving oldHex (oldHex `addHex` dir) now
-
---run :: Hextille -> Hex -> IO()
---run hextille centerhex = do
---    key <- getKey
---    processChar key hextille centerhex
 
 run :: (Status,Hex,VisualStack) -> IO()
 run (Idle,centerHex,vstack) = do
@@ -96,9 +65,5 @@ main = do
                     : Dot
                     : DebugText
                     : [])
-{-    let stack = ( (renderHextille rh (Hex(0,0,0)))
-                : renderDot
-                : (renderText (show (smallLoc (Hex(0,0,0)))) (screen_width,screen_height) (0,0,0))
-                : [])-}
     run (Idle,Hex(0,0,0),vstack)
     stopGraphics
