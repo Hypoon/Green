@@ -1,11 +1,20 @@
 module Graphics
-( getXY
-, drawOffsetHextille
-, drawText
-, animateMotion
-, showEverything
+( screen_width
+, screen_height
+--, getXY
+--, drawOffsetHextille
+--, drawText
+, renderDot
+, renderHextille
+--, renderSlidingHextille
+, renderText
+, displayAll
+--, animateMotion
+--, showEverything
 , startGraphics
 , stopGraphics
+, Stack(..)
+, Renderable(..)
 ) where
 
 import Hex
@@ -23,9 +32,30 @@ stopGraphics :: IO()
 stopGraphics = close
 
 getXY :: Hex -> (Int,Int)
-getXY (Hex(u,v,w)) = ((-2*u)*75,-(v-w)*50)
+getXY (Hex(u,v,w)) = (round $ (-2*u)*75,round $ -(v-w)*50)
 
-type Renderable = (Int -> IO())
+type Renderable = IO()
+type Stack = [Renderable]
+
+renderDot :: Renderable
+renderDot = (drawDot (screen_width `quot` 2,screen_height `quot` 2) 25 (0,0x80,0xFF))
+
+renderHextille :: Hextille -> Hex -> Renderable
+renderHextille hextille centerhex = (drawOffsetHextille hextille (getXY centerhex))
+
+{-
+renderSlidingHextille :: Hextille -> Hex -> Hex -> Time -> Renderable
+renderSlidingHextille hextille old new startTime = (\t -> drawHextileMotionFrame hextille old new (t-startTime))
+-}
+
+renderText :: String -> (Int,Int) -> RGB -> Renderable
+renderText str (x,y) rgb = (drawText str (x,y) rgb)
+
+displayAll :: Stack -> IO()
+displayAll things = do
+    clearDrawing
+    sequence things
+    updateDrawing
 
 drawOffsetHex :: (Hex,Type) -> (Int,Int) -> IO()
 drawOffsetHex (h,t) (ox,oy) = do
@@ -37,6 +67,7 @@ drawOffsetHextille hextille (ox, oy) = do
     sequence $ map (\(h,t) -> drawOffsetHex (h,t) (ox, oy) ) hextille
     return ()
 
+{-
 drawHextileMotionFrame :: Hextille -> Hex -> Hex -> Time -> IO()
 drawHextileMotionFrame hextille old new time = do
     let (oldx,oldy) = (getXY old)
@@ -45,7 +76,8 @@ drawHextileMotionFrame hextille old new time = do
         x=oldx+(round (prog*(fromIntegral (newx-oldx))))
         y=oldy+(round (prog*(fromIntegral (newy-oldy))))
     drawOffsetHextille hextille (x,y)
-
+-}
+{-
 animateMotion :: Hextille -> Hex -> Time -> Time -> Hex -> IO()
 animateMotion ht old startTick nowTick dir 
     | nowTick>=startTick+500  = return()
@@ -70,3 +102,4 @@ showEverything hextille centerhex = do
     drawDot (screen_width `quot` 2,screen_height `quot` 2) 25 (0,0x80,0xFF)
     drawText (show (smallLoc centerhex)) (screen_width,screen_height) (0,0,0)
     updateDrawing
+-}

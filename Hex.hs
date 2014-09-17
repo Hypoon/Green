@@ -19,12 +19,12 @@ module Hex
 import System.Random
 import Control.Applicative
 
-newtype Hex = Hex (Int,Int,Int) deriving (Eq, Show)
+newtype Hex = Hex (Float,Float,Float) deriving (Eq, Show)
 
-bigLoc :: Hex -> (Int,Int,Int)
+bigLoc :: Hex -> (Float,Float,Float)
 bigLoc (Hex (u,v,w)) = (v-w,w-u,u-v)
 
-smallLoc :: Hex -> (Int,Int,Int)
+smallLoc :: Hex -> (Float,Float,Float)
 smallLoc (Hex (u,v,w)) = (u,v,w)
 
 addHex :: Hex -> Hex -> Hex
@@ -36,7 +36,7 @@ negateHex (Hex (u,v,w)) = Hex(-u,-v,-w)
 subHex :: Hex -> Hex -> Hex
 subHex a b = addHex a (negateHex b)
 
-scaleHex :: Int -> Hex -> Hex
+scaleHex :: Float -> Hex -> Hex
 scaleHex k (Hex (u,v,w)) = Hex (k*u,k*v,k*w)
 
 data Color = Red | Green | Blue | Colorless deriving Eq
@@ -103,17 +103,17 @@ instance Random Type where
     random g = randomR(Type(Shadeless,Colorless),Type(Light,Blue)) g
 
 hexLine :: Hex -> Hex -> Int -> [Hex]
-hexLine start direction length = map (\l -> addHex start (scaleHex l direction)) [0..length]
+hexLine start direction length = map (\l -> addHex start (scaleHex ((fromIntegral l)::Float) direction)) [0..length]
 
 hexRing :: Int -> [Hex]
 hexRing 0 = [Hex(0,0,0)]
 hexRing r = concat (map (side r) [0..5]) where
-    side r 0 = hexLine (scaleHex r (Hex(0,1,-1))) (Hex(-1,0,1)) (r-1)
-    side r 1 = hexLine (scaleHex r (Hex(-1,1,0))) (Hex(0,-1,1)) (r-1)
-    side r 2 = hexLine (scaleHex r (Hex(-1,0,1))) (Hex(1,-1,0)) (r-1)
-    side r 3 = hexLine (scaleHex r (Hex(0,-1,1))) (Hex(1,0,-1)) (r-1)
-    side r 4 = hexLine (scaleHex r (Hex(1,-1,0))) (Hex(0,1,-1)) (r-1)
-    side r 5 = hexLine (scaleHex r (Hex(1,0,-1))) (Hex(-1,1,0)) (r-1)
+    side r 0 = hexLine (scaleHex (fromIntegral r) (Hex(0,1,-1))) (Hex(-1,0,1)) (r-1)
+    side r 1 = hexLine (scaleHex (fromIntegral r) (Hex(-1,1,0))) (Hex(0,-1,1)) (r-1)
+    side r 2 = hexLine (scaleHex (fromIntegral r) (Hex(-1,0,1))) (Hex(1,-1,0)) (r-1)
+    side r 3 = hexLine (scaleHex (fromIntegral r) (Hex(0,-1,1))) (Hex(1,0,-1)) (r-1)
+    side r 4 = hexLine (scaleHex (fromIntegral r) (Hex(1,-1,0))) (Hex(0,1,-1)) (r-1)
+    side r 5 = hexLine (scaleHex (fromIntegral r) (Hex(1,0,-1))) (Hex(-1,1,0)) (r-1)
 
 hexDisk :: Int -> [Hex]
 hexDisk r = concat (map hexRing [0..r])
@@ -127,6 +127,7 @@ randomHextille seed radius =
         hs = hexDisk radius
     in zip hs ts
 
+{-
 padShowType :: Type -> String
 padShowType t = begin ++ (show t) ++ end where
     begin = take (quot (10 - (length (show t))) 2) $ repeat ' '
@@ -153,3 +154,5 @@ showHextille :: Hextille -> String
 showHextille [] = ""
 showHextille h = foldr superimpose (blank r) (map (\hex -> showHex hex r) h) where
     r = maximum (map (\ (Hex(u,v,w)) -> maximum [u,v,w]) (map fst h))
+
+-}
