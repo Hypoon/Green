@@ -32,7 +32,6 @@ void writeText(char *str, int x, int y, int red, int green, int blue) {
     SDL_Surface* textSurface = TTF_RenderText_Solid(gfont , str, textColor );
     SDL_Texture* gTexture = SDL_CreateTextureFromSurface( gRenderer, textSurface );
     int width=(textSurface->w);
-    printf("Width=%d\n",width);
     int height=(textSurface->h);
     SDL_Rect dest = {x-width,y-height,width,height};
     SDL_RenderCopy( gRenderer, gTexture, NULL, &dest );
