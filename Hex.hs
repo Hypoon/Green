@@ -14,17 +14,19 @@ module Hex
 , hexDisk
 , Hextille(..)
 , randomHextille
+, rotateHex
+, rotateHexAboutOrigin
 ) where
 
 import System.Random
 import Control.Applicative
 
-newtype Hex = Hex (Float,Float,Float) deriving (Eq, Show)
+newtype Hex = Hex (Double,Double,Double) deriving (Eq, Show)
 
-bigLoc :: Hex -> (Float,Float,Float)
+bigLoc :: Hex -> (Double,Double,Double)
 bigLoc (Hex (u,v,w)) = (v-w,w-u,u-v)
 
-smallLoc :: Hex -> (Float,Float,Float)
+smallLoc :: Hex -> (Double,Double,Double)
 smallLoc (Hex (u,v,w)) = (u,v,w)
 
 addHex :: Hex -> Hex -> Hex
@@ -36,7 +38,7 @@ negateHex (Hex (u,v,w)) = Hex(-u,-v,-w)
 subHex :: Hex -> Hex -> Hex
 subHex a b = addHex a (negateHex b)
 
-scaleHex :: Float -> Hex -> Hex
+scaleHex :: Double -> Hex -> Hex
 scaleHex k (Hex (u,v,w)) = Hex (k*u,k*v,k*w)
 
 data Color = Red | Green | Blue | Colorless deriving Eq
@@ -103,7 +105,7 @@ instance Random Type where
     random g = randomR(Type(Shadeless,Colorless),Type(Light,Blue)) g
 
 hexLine :: Hex -> Hex -> Int -> [Hex]
-hexLine start direction length = map (\l -> addHex start (scaleHex ((fromIntegral l)::Float) direction)) [0..length]
+hexLine start direction length = map (\l -> addHex start (scaleHex ((fromIntegral l)::Double) direction)) [0..length]
 
 hexRing :: Int -> [Hex]
 hexRing 0 = [Hex(0,0,0)]
@@ -126,6 +128,26 @@ randomHextille seed radius =
             area = 1+6*(sum [1..radius])
         hs = hexDisk radius
     in zip hs ts
+
+{-
+rotateHexAboutOrigin :: Hex -> Int -> Hex
+rotateHexAboutOrigin hex 0 = hex
+rotateHexAboutOrigin (Hex(u,v,w)) 1 = (Hex(-w,-u,-v))
+rotateHexAboutOrigin (Hex(u,v,w)) (-1) = (Hex(-v,-w,-u))
+rotateHexAboutOrigin hex amt
+    | amt > 1 = rotateHexAboutOrigin (rotateHexAboutOrigin hex (amt-1)) 1
+    | amt < (-1) = rotateHexAboutOrigin (rotateHexAboutOrigin hex (amt+1)) (-1)
+-}
+
+rotateHexAboutOrigin :: Hex -> Double -> Hex
+rotateHexAboutOrigin (Hex(u,v,w)) angle = (Hex(nu,nv,nw)) where
+    theta = angle*pi/3.0
+    nu = ((-1)*(v+w)*(cos theta))+((v-w)*(sin theta)*(sqrt (1/3)))
+    nv = ((-1)*(w+u)*(cos theta))+((w-u)*(sin theta)*(sqrt (1/3)))
+    nw = ((-1)*(u+v)*(cos theta))+((u-v)*(sin theta)*(sqrt (1/3)))
+
+rotateHex :: Hex -> Hex -> Double -> Hex
+rotateHex hex origin amount = addHex origin $ (rotateHexAboutOrigin (hex `subHex` origin) amount)
 
 {-
 padShowType :: Type -> String
