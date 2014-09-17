@@ -1,6 +1,6 @@
 module Graphics
 ( getXY
-, displayHextille
+, drawOffsetHextille
 , drawText
 , animateMotion
 , showEverything
@@ -37,17 +37,14 @@ drawOffsetHextille hextille (ox, oy) = do
     sequence $ map (\(h,t) -> drawOffsetHex (h,t) (ox, oy) ) hextille
     return ()
 
-displayHextille :: Hextille -> (Int,Int) -> IO()
-displayHextille hextille (ox,oy) = do
-    clearDrawing
-    drawOffsetHextille hextille (ox,oy)
-    drawDot (screen_width `quot` 2,screen_height `quot` 2) 25 (0,0x80,0xFF)
-    updateDrawing
-
-displayText :: String -> (Int,Int) -> RGB -> IO()
-displayText a b c = do
-    drawText a b c
-    updateDrawing
+drawHextileMotionFrame :: Hextille -> Hex -> Hex -> Time -> IO()
+drawHextileMotionFrame hextille old new time = do
+    let (oldx,oldy) = (getXY old)
+        (newx,newy) = (getXY new)
+        prog = (fromIntegral time)/500.0::Float
+        x=oldx+(round (prog*(fromIntegral (newx-oldx))))
+        y=oldy+(round (prog*(fromIntegral (newy-oldy))))
+    drawOffsetHextille hextille (x,y)
 
 animateMotion :: Hextille -> Hex -> Time -> Time -> Hex -> IO()
 animateMotion ht old startTick nowTick dir 
@@ -59,11 +56,17 @@ animateMotion ht old startTick nowTick dir
             prog = ((fromIntegral nowTick)-(fromIntegral startTick))/500.0::Float
             x=oldx+(round (prog*(fromIntegral (newx-oldx))))
             y=oldy+(round (prog*(fromIntegral (newy-oldy))))
-        displayHextille ht (x,y)
+        clearDrawing
+        drawHextileMotionFrame ht old (old `addHex` dir) (nowTick - startTick)
+        drawDot (screen_width `quot` 2,screen_height `quot` 2) 25 (0,0x80,0xFF)
+        updateDrawing
         newNowTick <- getTicks
         animateMotion ht old startTick newNowTick dir
 
 showEverything :: Hextille -> Hex -> IO()
 showEverything hextille centerhex = do
-    displayHextille hextille (getXY centerhex)
-    displayText (show (smallLoc centerhex)) (screen_width,screen_height) (0,0,0)
+    clearDrawing
+    drawOffsetHextille hextille (getXY centerhex)
+    drawDot (screen_width `quot` 2,screen_height `quot` 2) 25 (0,0x80,0xFF)
+    drawText (show (smallLoc centerhex)) (screen_width,screen_height) (0,0,0)
+    updateDrawing

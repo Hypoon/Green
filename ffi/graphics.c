@@ -7,7 +7,7 @@ const int HEX_HEIGHT = 100;
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
-
+TTF_Font *gfont = NULL;
 
 void myinitialize(int width, int height) {
     SDL_Init(SDL_INIT_VIDEO);
@@ -15,19 +15,21 @@ void myinitialize(int width, int height) {
     gWindow = SDL_CreateWindow( "test",SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
     gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawColor(gRenderer,0xFF,0xFF,0xFF,0xFF);
-    //IMG_Init(IMG_INIT_PNG);
+    TTF_Init();
+    gfont = TTF_OpenFont( "/usr/share/fonts/corefonts/arial.ttf", 12 );
 }
 
 void myclose() {
+    TTF_CloseFont(gfont);
+    TTF_Quit();
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
-    //IMG_Quit();
     SDL_Quit();
 }
 
 void writeText(char *str, int x, int y, int red, int green, int blue) {
-    TTF_Init();
-    TTF_Font *gfont = TTF_OpenFont( "/usr/share/fonts/corefonts/arial.ttf", 12 );
+    //TTF_Init();
+    //TTF_Font *gfont = TTF_OpenFont( "/usr/share/fonts/corefonts/arial.ttf", 12 );
     SDL_Color textColor = { red, green, blue };
     SDL_Surface* textSurface = TTF_RenderText_Solid(gfont , str, textColor );
     SDL_Texture* gTexture = SDL_CreateTextureFromSurface( gRenderer, textSurface );
@@ -36,7 +38,7 @@ void writeText(char *str, int x, int y, int red, int green, int blue) {
     SDL_Rect dest = {x-width,y-height,width,height};
     SDL_RenderCopy( gRenderer, gTexture, NULL, &dest );
     SDL_FreeSurface(textSurface);
-    TTF_CloseFont(gfont);
+    //TTF_CloseFont(gfont);
 
 }
 
@@ -94,55 +96,3 @@ void clearDrawing() {
     SDL_SetRenderDrawColor(gRenderer,0xFF,0xFF,0xFF,0xFF);
     SDL_RenderClear(gRenderer);
 }
-
-char getEvent() {
-    SDL_Event e;
-    if(SDL_PollEvent( &e ) != 0) {
-        if(e.type == SDL_KEYDOWN) {
-            return ((char)e.key.keysym.sym);
-        } else
-            return ' ';
-    } else
-        return ' ';
-}
-
-/*int main(int argc, char* args[] ) {
-    myinitialize();
-    while(1) {
-        SDL_SetRenderDrawColor(gRenderer,0xFF,0xFF,0xFF,0xFF);
-        SDL_RenderClear(gRenderer);
-/        SDL_SetRenderDrawColor(gRenderer,0xFF,0x00,0x00,0xFF);
-        SDL_Rect fillRect = {200,150,400,300};
-        SDL_RenderFillRect(gRenderer,&fillRect);
-        SDL_SetRenderDrawColor(gRenderer,0x00,0xFF,0x00,0xFF);
-        SDL_Rect outlineRect = {133,100,533,400};
-        SDL_RenderDrawRect(gRenderer,&outlineRect);
-        SDL_SetRenderDrawColor(gRenderer,0x00,0x00,0xFF,0xFF);
-        SDL_RenderDrawLine(gRenderer,0,300,800,300);
-        SDL_SetRenderDrawColor(gRenderer,0xFF,0xFF,0x00,0xFF);
-        for( int i=0;i<SCREEN_HEIGHT;i+=4) {
-            SDL_RenderDrawPoint(gRenderer,400,i);
-        }/
-        drawHexagon(400,300,0,0xFF,0xFF);
-        SDL_RenderPresent(gRenderer);
-    }
-    myclose();
-    return 0;
-}*/
-/*int main(int argc, char* args[] ) {
-    myinitialize(800,600);
-    clearDrawing();
-    SDL_SetRenderDrawColor(gRenderer,0xFF,0,0,0xFF);
-    SDL_RenderDrawLine(gRenderer,1,1,799,1);
-    SDL_SetRenderDrawColor(gRenderer,0,0xFF,0,0xFF);
-    SDL_RenderDrawLine(gRenderer,799,1,799,599);
-    SDL_SetRenderDrawColor(gRenderer,0,0,0xFF,0xFF);
-    SDL_RenderDrawLine(gRenderer,799,599,1,599);
-    SDL_SetRenderDrawColor(gRenderer,0,0,0,0xFF);
-    SDL_RenderDrawLine(gRenderer,1,599,1,1);
-    updateDrawing();
-    while(1){
-    }
-    myclose();
-    return 0;
-}*/

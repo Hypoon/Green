@@ -8,7 +8,7 @@ module Input
 import Foreign.C
 import Hex
 
-foreign import ccall unsafe "graphics.c getEvent" c_getEvent :: IO(CChar)
+foreign import ccall unsafe "time.c getEvent" c_getEvent :: IO(CChar)
 getKey :: IO(Char)
 getKey = do
     cletter <- c_getEvent
