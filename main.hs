@@ -35,7 +35,7 @@ processChar char = DoMove (charToHex char)
 actionToStatus :: Action -> Frame -> Time -> Status
 actionToStatus DoQuit _ _ = Quitting
 actionToStatus DoIdle _ _ = Idle
-actionToStatus (DoMove dir) (oldHex,rotation) now = Moving oldHex (oldHex `addHex` (rotateHexAboutOrigin dir rotation)) now
+actionToStatus (DoMove dir) (oldHex,rotation) now = Moving oldHex (oldHex `addHex` (rotateHexAboutOrigin dir (-rotation))) now
 actionToStatus (DoRotate angle) (axis,oldrotation) now = Rotating oldrotation (oldrotation + angle) now
 
 run :: (Status,Frame,VisualStack) -> IO()
