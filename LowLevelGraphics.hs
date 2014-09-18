@@ -29,9 +29,9 @@ foreign import ccall unsafe "graphics.c updateDrawing" c_updateDrawing :: IO()
 updateDrawing :: IO()
 updateDrawing = c_updateDrawing
 
-foreign import ccall unsafe "graphics.c drawHexagon" c_drawHexagon :: CInt -> CInt -> CInt -> CInt -> CInt -> IO()
-drawHexagon :: (Int,Int) -> RGB -> IO()
-drawHexagon (x,y) (r,g,b) = c_drawHexagon (fromIntegral x) (fromIntegral y) (fromIntegral r) (fromIntegral g) (fromIntegral b)
+foreign import ccall unsafe "graphics.c drawHexagon" c_drawHexagon :: CInt -> CInt -> CDouble -> CInt -> CInt -> CInt -> IO()
+drawHexagon :: (Int,Int) -> Double -> RGB -> IO()
+drawHexagon (x,y) angle (r,g,b) = c_drawHexagon (fromIntegral x) (fromIntegral y) (realToFrac angle) (fromIntegral r) (fromIntegral g) (fromIntegral b)
 
 foreign import ccall unsafe "graphics.c drawDot" c_drawDot :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO()
 drawDot :: (Int,Int) -> Int -> RGB -> IO()

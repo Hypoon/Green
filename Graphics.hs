@@ -47,14 +47,14 @@ displayAll things = do
     sequence things
     updateDrawing
 
-drawOffsetHex :: (Hex,Type) -> (Int,Int) -> IO()
-drawOffsetHex (h,t) (ox,oy) = do
-    drawHexagon (-ox+hx+(screen_width`quot`2),-oy+hy+(screen_height`quot`2)) (typeToRGB t) where
+drawOffsetHex :: (Hex,Type) -> (Int,Int) -> Double -> IO()
+drawOffsetHex (h,t) (ox,oy) angle = do
+    drawHexagon (-ox+hx+(screen_width`quot`2),-oy+hy+(screen_height`quot`2)) angle (typeToRGB t) where
         (hx,hy) = (getXY h)
 
 --drawOffsetHextille :: Hextille -> (Int,Int) -> Double -> IO()
 drawOffsetHextille :: Hextille -> (Hex, Double) -> IO()
 --drawOffsetHextille hextille (ox, oy) rotation = do
 drawOffsetHextille hextille (centerHex,rotation) = do
-    sequence $ map (\(h,t) -> drawOffsetHex ((rotateHex h centerHex rotation),t) (getXY centerHex) ) hextille
+    sequence $ map (\(h,t) -> drawOffsetHex ((rotateHex h centerHex rotation),t) (getXY centerHex) (rotation*pi*(1/3))) hextille
     return ()
