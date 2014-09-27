@@ -2,6 +2,7 @@
 
 module Time
 ( getTicks
+, sleep
 , Time(..)
 ) where
 
@@ -15,3 +16,7 @@ getTicks :: IO(Time)
 getTicks = do
     ticks <- c_getTicks
     return (fromIntegral ticks)
+
+foreign import ccall unsafe "time.c sleepUntilNextFrame" c_sleep :: IO()
+sleep :: IO()
+sleep = c_sleep

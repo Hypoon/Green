@@ -3,7 +3,7 @@ import Graphics
 import Input
 import Time
 
-import Control.Concurrent
+--import Control.Concurrent
 
 import Numeric
 
@@ -45,25 +45,14 @@ actionToStatus (DoRotate angle) (axis,oldrotation) now
     | (oldrotation + angle < -0.5) = Rotating (oldrotation+6.0) (oldrotation + angle + 6.0) now
     | otherwise = Rotating oldrotation (oldrotation + angle) now
 
-sleepUntil :: Time -> IO()
-sleepUntil t = do
-    now <- getTicks
-    if (now<t)
-        then do
-            threadDelay 10000
-            --putStrLn $ "sleeping: "++(show now)
-            sleepUntil t
-        else return()
-
 run :: (Status,Frame,VisualStack) -> IO()
 run (Idle,frame,vstack) = do
     now <- getTicks
-    --putStrLn $ show now
     renderAll vstack frame now
     key <- getKey
     let action = (processChar key)
     let newStatus = actionToStatus action frame now
-    --sleepUntil (((now `quot` 40)+1)*40)
+    sleep
     run (newStatus,frame,vstack)
 run (Quitting,_,_) = return()
 run (Moving src dest startTime,(centerHex,rotation),vstack) = do
@@ -73,10 +62,12 @@ run (Moving src dest startTime,(centerHex,rotation),vstack) = do
         then do
             let newCenterHex = (src `addHex` ( ((fromIntegral interval)/500.0) `scaleHex` (dest `subHex` src) ))
             renderAll vstack (newCenterHex,rotation) now
+            sleep
             run (Moving src dest startTime,(newCenterHex,rotation),vstack)
         else do
             let newCenterHex = dest
             renderAll vstack (newCenterHex,rotation) now
+            sleep
             run (Idle,(newCenterHex,rotation),vstack)
 run (Rotating src dest startTime,(centerHex,rotation),vstack) = do
     now <- getTicks
@@ -85,10 +76,12 @@ run (Rotating src dest startTime,(centerHex,rotation),vstack) = do
         then do
             let newRotation = (src + (((fromIntegral interval)/500.0)*(dest-src)))
             renderAll vstack (centerHex,newRotation) now
+            sleep
             run (Rotating src dest startTime,(centerHex,newRotation),vstack)
         else do
             let newRotation = fromIntegral $ round dest `mod` 6
             renderAll vstack (centerHex,newRotation) now
+            sleep
             run (Idle,(centerHex,newRotation),vstack)
 
 main :: IO()
