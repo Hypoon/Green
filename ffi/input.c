@@ -7,7 +7,7 @@ char getEvent() {
             if (!e.key.repeat) {
                 return ((char)e.key.keysym.sym);
             } else
-                return ' ';
+                return getEvent();
         } else
             return ' ';
     } else

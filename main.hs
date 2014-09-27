@@ -3,6 +3,8 @@ import Graphics
 import Input
 import Time
 
+import Control.Concurrent
+
 import Numeric
 
 data Status = Quitting | Moving Hex Hex Time | Idle | Rotating Double Double Time
@@ -15,14 +17,17 @@ type Frame = (Hex,Double)
 hexToText :: Hex -> String
 hexToText hex = ("("++(showFFloat (Just 1) u $ ","++(showFFloat (Just 1) v $ ","++(showFFloat (Just 1) w ")")))) where (u,v,w) = (smallLoc hex)
 
+debugText :: Frame -> String
+debugText (h,r) = hexToText h ++ " " ++ "R" ++ (showFFloat (Just 1) r "")
+
 renderVisual :: Visual -> Frame -> Time -> Renderable
 renderVisual Dot _ _ = renderDot
-renderVisual DebugText (centerHex,rotation) _ = (renderText (hexToText centerHex) (screen_width,screen_height) (0,0,0))
-renderVisual (Ground hextille) (centerHex,rotation) _ = (renderHextille hextille (centerHex,rotation))
+renderVisual DebugText frame _ = (renderText (debugText frame) (screen_width,screen_height) (0,0,0))
+renderVisual (Ground hextille) frame _ = (renderHextille hextille frame)
 
 renderAll :: VisualStack -> Frame -> Time -> IO()
-renderAll vstack (centerHex,rotation) time = do
-    let stack = map (\visual -> renderVisual visual (centerHex,rotation) time) vstack
+renderAll vstack frame time = do
+    let stack = map (\visual -> renderVisual visual frame time) vstack
     displayAll stack
 
 processChar :: Char -> Action
@@ -35,17 +40,31 @@ processChar char = DoMove (charToHex char)
 actionToStatus :: Action -> Frame -> Time -> Status
 actionToStatus DoQuit _ _ = Quitting
 actionToStatus DoIdle _ _ = Idle
-actionToStatus (DoMove dir) (oldHex,rotation) now = Moving oldHex (oldHex `addHex` (rotateHexAboutOrigin dir (-rotation))) now
-actionToStatus (DoRotate angle) (axis,oldrotation) now = Rotating oldrotation (oldrotation + angle) now
+actionToStatus (DoMove dir) (oldHex,rotation) now = Moving oldHex (oldHex `addHex` (roundHex (rotateHexAboutOrigin dir (-rotation)))) now
+actionToStatus (DoRotate angle) (axis,oldrotation) now
+    | (oldrotation + angle < -0.5) = Rotating (oldrotation+6.0) (oldrotation + angle + 6.0) now
+    | otherwise = Rotating oldrotation (oldrotation + angle) now
+
+sleepUntil :: Time -> IO()
+sleepUntil t = do
+    now <- getTicks
+    if (now<t)
+        then do
+            threadDelay 10000
+            --putStrLn $ "sleeping: "++(show now)
+            sleepUntil t
+        else return()
 
 run :: (Status,Frame,VisualStack) -> IO()
-run (Idle,(centerHex,rotation),vstack) = do
+run (Idle,frame,vstack) = do
     now <- getTicks
-    renderAll vstack (centerHex,rotation) now
+    --putStrLn $ show now
+    renderAll vstack frame now
     key <- getKey
     let action = (processChar key)
-    let newStatus = actionToStatus action (centerHex,rotation) now
-    run (newStatus,(centerHex,rotation),vstack)
+    let newStatus = actionToStatus action frame now
+    --sleepUntil (((now `quot` 40)+1)*40)
+    run (newStatus,frame,vstack)
 run (Quitting,_,_) = return()
 run (Moving src dest startTime,(centerHex,rotation),vstack) = do
     now <- getTicks
@@ -68,16 +87,9 @@ run (Rotating src dest startTime,(centerHex,rotation),vstack) = do
             renderAll vstack (centerHex,newRotation) now
             run (Rotating src dest startTime,(centerHex,newRotation),vstack)
         else do
-            let newRotation = dest
+            let newRotation = fromIntegral $ round dest `mod` 6
             renderAll vstack (centerHex,newRotation) now
             run (Idle,(centerHex,newRotation),vstack)
-{-
-    let ((Ground hextille):restofvstack) = vstack
-    let newHextille = map (\(h,t) -> ((rotateHex h centerHex 1),t)) hextille
-    let newvstack = ((Ground newHextille):restofvstack)
-    run (Idle,(centerHex,rotation),newvstack)
- -}          
-
 
 main :: IO()
 main = do

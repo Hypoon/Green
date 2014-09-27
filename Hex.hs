@@ -16,6 +16,7 @@ module Hex
 , randomHextille
 , rotateHex
 , rotateHexAboutOrigin
+, roundHex
 ) where
 
 import System.Random
@@ -40,6 +41,17 @@ subHex a b = addHex a (negateHex b)
 
 scaleHex :: Double -> Hex -> Hex
 scaleHex k (Hex (u,v,w)) = Hex (k*u,k*v,k*w)
+
+roundHex :: Hex -> Hex
+roundHex (Hex (u,v,w))
+    | (m == x) = (Hex (fromIntegral $ round u, fromIntegral $ round v, fromIntegral $ -(round u)-(round v)))
+    | (m == y) = (Hex (fromIntegral $ -(round v)-(round w), fromIntegral $ round v, fromIntegral $ round w))
+    | (m == z) = (Hex (fromIntegral $ round u, fromIntegral $ -(round w)-(round u), fromIntegral $ round w))
+    where
+        x = (fromIntegral $ round u) + (fromIntegral $ round v) + w
+        y = (fromIntegral $ round v) + (fromIntegral $ round w) + u
+        z = (fromIntegral $ round w) + (fromIntegral $ round u) + v
+        m = minimum [x,y,z]
 
 data Color = Red | Green | Blue | Colorless deriving Eq
 
