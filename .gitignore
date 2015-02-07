@@ -10,3 +10,4 @@ cabal-dev
 bin/
 cabal.sandbox.config
 cabal.config
+oldnet/
