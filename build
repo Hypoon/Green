@@ -1,0 +1,1 @@
+ghc --make -threaded -outputdir=bin/ -o bin/green main.hs -optc -std=c99 ffi/* -lSDL2 -lSDL2_ttf -lSDL2_gfx

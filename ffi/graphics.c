@@ -29,8 +29,6 @@ void myclose() {
 }
 
 void writeText(char *str, int x, int y, int red, int green, int blue) {
-    //TTF_Init();
-    //TTF_Font *gfont = TTF_OpenFont( "/usr/share/fonts/corefonts/arial.ttf", 12 );
     SDL_Color textColor = { red, green, blue };
     SDL_Surface* textSurface = TTF_RenderText_Solid(gfont , str, textColor );
     SDL_Texture* gTexture = SDL_CreateTextureFromSurface( gRenderer, textSurface );
@@ -39,8 +37,6 @@ void writeText(char *str, int x, int y, int red, int green, int blue) {
     SDL_Rect dest = {x-width,y-height,width,height};
     SDL_RenderCopy( gRenderer, gTexture, NULL, &dest );
     SDL_FreeSurface(textSurface);
-    //TTF_CloseFont(gfont);
-
 }
 
 void drawDot(int centerx, int centery, int r, int red, int green, int blue) {
@@ -61,61 +57,6 @@ void drawDot(int centerx, int centery, int r, int red, int green, int blue) {
         }
     }
 }
-
-//void drawHexagon(int centerx,int centery,int red,int green,int blue) {
-//    int top=centery-HEX_HEIGHT/2;
-//    int bottom=centery+HEX_HEIGHT/2-1;
-//    int x1=centerx-HEX_WIDTH/2;
-//    int x2=centerx-HEX_WIDTH/4-1;
-//    int x3=centerx+HEX_WIDTH/4;
-//    int x4=centerx+HEX_WIDTH/2-1;
-//    SDL_SetRenderDrawBlendMode(gRenderer,SDL_BLENDMODE_BLEND);
-//    SDL_SetRenderDrawColor(gRenderer,red,green,blue,0xFF);
-//    for (int i=0;i<HEX_HEIGHT/2;i++) {
-//        SDL_RenderDrawLine(gRenderer,x2-i+1,top+i,x3+i-1,top+i);
-//    }
-//    for (int i=0;i<HEX_HEIGHT/2;i++) {
-//        SDL_RenderDrawLine(gRenderer,x1+i,centery+i,x4-i,centery+i);
-//    }
-//    /*SDL_SetRenderDrawColor(gRenderer,0x00,0x00,0x00,0xFF);
-//    SDL_RenderDrawLine(gRenderer,x1+1,centery-1,x2+1,top);
-//    SDL_RenderDrawLine(gRenderer,x2+1,top,x3-1,top);
-//    SDL_RenderDrawLine(gRenderer,x3-1,top,x4-1,centery-1);
-//    SDL_RenderDrawLine(gRenderer,x4,centery,x3,bottom);
-//    SDL_RenderDrawLine(gRenderer,x3,bottom,x2,bottom);
-//    SDL_RenderDrawLine(gRenderer,x2,bottom,x1-1,centery-1);
-//    SDL_RenderDrawLine(gRenderer,x4-1,centery,x3-1,bottom);
-//    SDL_RenderDrawLine(gRenderer,x2+1,bottom,x1+1-1,centery-1);
-//    */
-//}
-
-/*void drawHexagon(int centerx,int centery,double angle,int red,int green,int blue) {
-    int HEX_WIDTH = 200.0;
-    int HEX_HEIGHT = SDL_floor(HEX_WIDTH*(1.73205080757)*(0.5));
-    int top=centery-HEX_HEIGHT/2;
-    int bottom=centery+HEX_HEIGHT/2;
-    int x1=centerx-HEX_WIDTH/2;
-    int x2=centerx-HEX_WIDTH/4;
-    int x3=centerx+HEX_WIDTH/4;
-    int x4=centerx+HEX_WIDTH/2;
-    SDL_Texture* gTexture = SDL_CreateTexture( gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 1200, 750 );
-    SDL_SetRenderTarget( gRenderer, gTexture );
-    SDL_SetRenderDrawBlendMode(gRenderer,SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(gRenderer,0xFF,0xFF,0xFF,0x00);
-    SDL_RenderClear(gRenderer);
-    SDL_SetRenderDrawColor(gRenderer,red,green,blue,0xFF);
-    for (int i=0;i<HEX_HEIGHT/2;i++) {
-        SDL_RenderDrawLine(gRenderer,x2-i,top+i,x3+i,top+i);
-    }
-    for (int i=0;i<HEX_HEIGHT/2;i++) {
-        SDL_RenderDrawLine(gRenderer,x1+i,centery+i,x4-i,centery+i);
-    }
-    SDL_RenderPresent(gRenderer);
-    //SDL_Rect renderQuad = { 0, 0, 1200, 750 };
-    //SDL_Point center = {centerx,centery};
-    SDL_SetRenderTarget( gRenderer, NULL );
-    SDL_RenderCopyEx( gRenderer, gTexture, NULL, NULL, 0, NULL, SDL_FLIP_NONE );
-}*/
 
 void drawHexagon(int centerx,int centery,double angle,int red,int green,int blue) {
     int radius = HEX_WIDTH/2;
