@@ -1,13 +1,2 @@
 dist
-cabal-dev
-*.o
-*.hi
-*.chi
-*.chs.h
-.virtualenv
-.hsenv
-.cabal-sandbox/
-bin/
-cabal.sandbox.config
-cabal.config
-oldnet/
+oldstuff/
