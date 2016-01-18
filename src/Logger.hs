@@ -1,46 +1,66 @@
 module Logger
-( initLogger
-, qlog
-, runLogIO
-, LogIO(..)
+( qlog
 ) where
 
 import System.IO
 import Control.Concurrent
 import Control.Concurrent.Chan
-import Control.Monad.Reader
+--import Control.Monad.Reader
 import Data.Time
 import Services
 
-type LogIO = ReaderT LogChan IO
 type LogChan = Chan (UTCTime,String)
 
-initLogger :: String -> ServiceChan -> IO(LogChan)
-initLogger path tidc = do
+data Logger = Logger LogChan
+
+instance Service Logger where
+    start path = initLogger path
+    stop (Logger _) = qlog "!!quit!!"
+
+askLogger :: ServiceIO(Logger)
+askLogger = do
+    services <- ask
+    logger = head $ filter isLogger services
+    return logger
+
+isLogger :: Service -> Bool
+isLogger (Logger _ _) = True
+isLogger _ = False
+
+initLogger :: String -> ServiceIO(Logger)
+initLogger path = do
     logChan <- newChan
     logFile <- openFile path AppendMode
-    runLogIO logChan (qlog "Starting Logger.")
-    forkIO (runLogIO logChan (loggerLoop logFile tidc))
-    return logChan
+    let logger = Logger logChan
+    serviceForkIO (startLoggerLoop path)
+    return (Logger logChan)
 
-runLogIO :: LogChan -> LogIO a -> IO a
-runLogIO c l = runReaderT l c
-
-qlog :: String -> LogIO()
+qlog :: String -> ServiceIO()
 qlog message = do
-    logChan <- ask
+    logChan <- askLogger
     time <- liftIO $ getCurrentTime
     liftIO $ writeChan logChan (time,message)
 
-loggerLoop :: Handle -> ServiceChan -> LogIO()
-loggerLoop logFile tidc = do
-    logChan <- ask
+startLoggerLoop :: String -> ServiceIO()
+startLoggerLoop path = do
+    (ServiceManager schan) <- askSM
+    logger <- askLogger
+    liftIO $ hPutStrLn logFile ((showT time)++": "++"Starting Logger.")
+    logFile <- liftIO $ openFile path AppendMode
+    liftIO $ writeChan schan (ServiceStarted logger)
+    loggerLoop logFile
+    liftIO $ hPutStrLn logFile ((showT time)++": "++"Stopping Logger.")
+    liftIO $ hClose logFile
+    liftIO $ writeChan schan (ServiceStopped logger)
+    return()
+
+loggerLoop :: Handle -> ServiceIO()
+loggerLoop logFile = do
+    (Logger logChan) <- askLogger
+    (ServiceManager schan) <- askSM
     (time,message) <- liftIO $ readChan logChan
     if(message=="!!quit!!")
         then do
-            liftIO $ hPutStrLn logFile ((showT time)++": "++"Stopping Logger.")
-            liftIO $ hClose logFile
-            liftIO $ writeChan tidc Logger
             return ()
         else do
             liftIO $ hPutStrLn logFile ((showT time)++": "++message)

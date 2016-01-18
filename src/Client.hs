@@ -7,23 +7,41 @@ import Services
 
 main = do
     putStrLn "Client"
-    tidc <- newChan
-    c <- initLogger "testLog" tidc
-
+    (sm::ServiceManager) <- runServiceIO [] (start ())
+    (logger::Logger) <- runServiceIO [sm] (start "testLog")
     -- test code --
-    runLogIO c someLoggingFunction
-    runLogIO c $ qlog "!!quit!!"
+    runServiceIO [sm,logger] someLoggingFunction
+    runServiceIO [sm,logger] (stop logger)
     -- end test code --
+    waitLoop
 
-    waitLoop tidc [Logger]
+svcmain :: ServiceIO ()
+svcmain = do
+    (sm::ServiceManager) <- start ()
+    local (sm:) do
+        (logger::Logger) <- start "testLog"
+        local (logger:) do
+            someLoggingFunction
+            stop logger
+    waitLoop
 
-someLoggingFunction :: LogIO()
+
+someLoggingFunction :: ServiceIO()
 someLoggingFunction = do
     qlog "test1"
     qlog "test2"
 
-waitLoop :: ServiceChan -> [Service] -> IO ()
-waitLoop tidc [] = return ()
-waitLoop tidc list = do
-    quitter <- readChan tidc
-    waitLoop tidc (delete quitter list)
+waitLoop :: ServiceIO ()
+waitLoop = do
+    services <- ask
+    (serviceManager schan) <- askSM
+    if (length services > 1)
+        then
+            message <- readChan schan
+            local (waitLoopMessageHandler (ServiceStopped svc)) waitLoop
+        else
+            return ()
+
+waitLoopMessageHandler :: ServiceMsg -> [Service] -> [Service]
+waitLoopMessageHandler (ServiceStarted svc) list = (svc:list)
+waitLoopMessageHandler (ServiceStopped svc) list = (delete svc list)
