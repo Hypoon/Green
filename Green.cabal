@@ -20,14 +20,14 @@ cabal-version:       >=1.10
 executable green
   main-is:             Client.hs
   ghc-options:         -threaded -with-rtsopts=-N
-  build-depends:       base >=4.8 && <4.9 , mtl , time
+  build-depends:       base >=4.8 && <4.9 , mtl , time , network
   hs-source-dirs:      src
   default-language:    Haskell2010
 
 executable greenss
   main-is:             StateServer.hs
   ghc-options:         -threaded -with-rtsopts=-N
-  build-depends:       base >=4.8 && <4.9
+  build-depends:       base >=4.8 && <4.9 , network , reflex , async , transformers , mtl , dependent-sum
   hs-source-dirs:      src
   default-language:    Haskell2010
 
