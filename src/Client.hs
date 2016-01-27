@@ -102,6 +102,35 @@ drawBox (width,height) = do
     drawHLine height (2,width-1)
     return ()
 
+addToolBox :: Int -> IO()
+addToolBox num = do
+    let w = 5
+    let h = 3
+    drawChar (80,23) '+'
+    let drawPart n = do
+            drawChar (80-((w-1)*n),25-(h-1)) '+'
+            drawChar (80-((w-1)*n),25) '+'
+            drawVLine (80-((w-1)*n)) (25-(h-1)+1,25-1)
+            drawHLine (25-(h-1)) (80-(((w-1)*n)-1),80-((w-1)*(n-1)+1))
+            drawChar (80-((w-1)*n)+((w-1) `quot` 2),25-((h-1) `quot` 2)) (head $ show (num-(n-1)))
+    mapM_ drawPart [1..num]
+
+
+healthWidth = 20
+addHealthBox :: IO()
+addHealthBox = do
+    drawChar (80-(healthWidth-1),1) '+'
+    drawChar (80-(healthWidth-1),3) '+'
+    drawChar (80,3) '+'
+    drawChar (80-(healthWidth-1),2) '|'
+    drawHLine 3 (80-(healthWidth-1)+1,80-1)
+
+drawHealth :: Double -> IO()
+drawHealth f = do
+    let num = ceiling $ f * (realToFrac $ healthWidth-2)
+    let str = (replicate num '#')++(replicate ((healthWidth-2)-num) ' ')
+    drawStr (80-(healthWidth-1)+1,2) str
+
 data MoveCommand = MoveCommand Char deriving (Read,Show)
 data NewLocation = NewLocation (Int,Int,Int) deriving (Read,Show)
 
@@ -112,6 +141,9 @@ main = do
         else (head args)
     putStrLn "Woo"
     drawBox (80,25)
+    addHealthBox
+    drawHealth 0.3
+    addToolBox 3
     mapM_ drawHexXY hexList
     {-let l1 = (map (\h -> drawChar (getXY h) 'U') allList)
     let l2 = (map (\h -> drawChar (getXY h) ' ') allList)
